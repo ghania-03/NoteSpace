@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
+import AuthPage from "./components/AuthPage";
+import Sidebar from "./components/Sidebar";
+import Topbar from "./components/Topbar";
+import CreateNote from "./components/CreateNote";
+import NotesSection from "./components/NotesSection";
+import EditNoteModal from "./components/EditNoteModal";
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 function App() {
@@ -300,113 +307,22 @@ function App() {
 
   if (!token) {
     return (
-      <div className="auth-page">
-        <div className="auth-decoration decoration-one"></div>
-        <div className="auth-decoration decoration-two"></div>
-
-        <div className="auth-container">
-          <div className="auth-brand">
-            <div className="brand-icon">N</div>
-            <span>NoteSpace</span>
-          </div>
-
-          <div className="auth-card">
-            <div className="auth-header">
-              <h1>
-                {isRegistering
-                  ? "Create your account"
-                  : "Welcome back"}
-              </h1>
-
-              <p>
-                {isRegistering
-                  ? "Start organizing your thoughts today."
-                  : "Sign in to access your personal notes."}
-              </p>
-            </div>
-
-            {(error || sessionExpired) && (
-              <div className="error-message">
-                <span>!</span>
-                {sessionExpired
-                  ? "Your session has expired. Please log in again."
-                  : error}
-              </div>
-            )}
-
-            <form onSubmit={handleAuth} className="auth-form">
-              {isRegistering && (
-                <div className="form-group">
-                  <label>Name</label>
-
-                  <input
-                    type="text"
-                    placeholder="Your name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </div>
-              )}
-
-              <div className="form-group">
-                <label>Email</label>
-
-                <input
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Password</label>
-
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="primary-button auth-button"
-                disabled={loading}
-              >
-                {loading
-                  ? "Please wait..."
-                  : isRegistering
-                  ? "Create account"
-                  : "Sign in"}
-              </button>
-            </form>
-
-            <div className="auth-switch">
-              <span>
-                {isRegistering
-                  ? "Already have an account?"
-                  : "Don't have an account?"}
-              </span>
-
-              <button
-                onClick={() => {
-                  setIsRegistering((current) => !current);
-                  setError("");
-                  setSessionExpired(false);
-                }}
-              >
-                {isRegistering ? "Sign in" : "Create one"}
-              </button>
-            </div>
-          </div>
-
-          <p className="auth-footer">
-            Your thoughts. Your space. Your notes.
-          </p>
-        </div>
-      </div>
+      <AuthPage
+        isRegistering={isRegistering}
+        setIsRegistering={setIsRegistering}
+        error={error}
+        setError={setError}
+        sessionExpired={sessionExpired}
+        setSessionExpired={setSessionExpired}
+        handleAuth={handleAuth}
+        loading={loading}
+        name={name}
+        setName={setName}
+        email={email}
+        setEmail={setEmail}
+        password={password}
+        setPassword={setPassword}
+      />
     );
   }
 
@@ -416,314 +332,59 @@ function App() {
 
   return (
     <div className="app-layout">
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <div className="sidebar-brand">
-          <div className="brand-icon">N</div>
-          <span>NoteSpace</span>
-        </div>
+      <Sidebar
+        user={user}
+        onLogout={logout}
+      />
 
-        <nav className="sidebar-nav">
-          <div className="nav-item active">
-            <span className="nav-icon">▤</span>
-            <span>My Notes</span>
-          </div>
-        </nav>
-
-        <div className="sidebar-bottom">
-          <div className="user-card">
-            <div className="avatar">
-              {user?.name?.charAt(0).toUpperCase()}
-            </div>
-
-            <div className="user-info">
-              <strong>{user?.name}</strong>
-              <span>{user?.email}</span>
-            </div>
-          </div>
-
-          <button className="logout-button" onClick={logout}>
-            <span>↪</span>
-            Logout
-          </button>
-        </div>
-      </aside>
-
-      {/* Main */}
       <main className="main-content">
-        <header className="topbar">
-          <div>
-            <p className="eyebrow">YOUR WORKSPACE</p>
-            <h1>My Notes</h1>
-          </div>
-
-          <div className="topbar-user">
-            <div className="avatar">
-              {user?.name?.charAt(0).toUpperCase()}
-            </div>
-          </div>
-        </header>
+        <Topbar user={user} />
 
         {error && (
           <div className="dashboard-error">
             <span>!</span>
             {error}
 
-            <button onClick={() => setError("")}>×</button>
+            <button onClick={() => setError("")}>
+              ×
+            </button>
           </div>
         )}
 
-        {/* Create note */}
-        <section className="create-section">
-          <div className="section-heading">
-            <div>
-              <h2>Create a new note</h2>
-              <p>Capture an idea, task, or thought.</p>
-            </div>
-          </div>
+        <CreateNote
+          title={title}
+          setTitle={setTitle}
+          content={content}
+          setContent={setContent}
+          onSubmit={createNote}
+        />
 
-          <form className="note-form" onSubmit={createNote}>
-            <input
-              className="note-title-input"
-              type="text"
-              placeholder="Note title..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-
-            <textarea
-              className="note-content-input"
-              placeholder="Start writing your note..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows="4"
-            />
-
-            <div className="form-footer">
-              <span className="hint">
-                Keep your ideas organized.
-              </span>
-
-              <button
-                type="submit"
-                className="primary-button"
-              >
-                + Add Note
-              </button>
-            </div>
-          </form>
-        </section>
-
-        {/* Notes */}
-        <section className="notes-section">
-          <div className="notes-header">
-            <div>
-              <h2>Your notes</h2>
-
-              <span className="note-count">
-                {notes.length}{" "}
-                {notes.length === 1 ? "note" : "notes"}
-              </span>
-            </div>
-
-            <div className="search-box">
-              <span>⌕</span>
-
-              <input
-                type="text"
-                placeholder="Search notes..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {notesLoading ? (
-            <div className="empty-state">
-              <div className="spinner"></div>
-              <p>Loading your notes...</p>
-            </div>
-          ) : filteredNotes.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon">✎</div>
-
-              <h3>
-                {search
-                  ? "No matching notes"
-                  : "No notes yet"}
-              </h3>
-
-              <p>
-                {search
-                  ? "Try searching for something else."
-                  : "Create your first note above and start capturing your ideas."}
-              </p>
-            </div>
-          ) : (
-            <div className="notes-grid">
-              {filteredNotes.map((note) => (
-                <article
-                  className="note-card"
-                  key={note._id}
-                >
-                  <div className="note-card-top">
-                    <span className="note-dot"></span>
-
-                    <div className="note-card-actions">
-                      {/* Edit button */}
-                      <button
-                        className="edit-button"
-                        onClick={() =>
-                          setEditingNote(note)
-                        }
-                        title="Edit note"
-                      >
-                        ✎
-                      </button>
-
-                      {/* Delete button */}
-                      <button
-                        className="delete-button"
-                        onClick={() =>
-                          deleteNote(note._id)
-                        }
-                        title="Delete note"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  </div>
-
-                  <h3>{note.title}</h3>
-
-                  <p>{note.content}</p>
-
-                  <div className="note-card-footer">
-                    <span>
-                      {new Date(
-                        note.createdAt
-                      ).toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
+        <NotesSection
+          notes={notes}
+          filteredNotes={filteredNotes}
+          search={search}
+          setSearch={setSearch}
+          notesLoading={notesLoading}
+          onEdit={setEditingNote}
+          onDelete={deleteNote}
+        />
       </main>
 
-      {/* Edit Note Modal */}
       {editingNote && (
-        <div className="edit-overlay">
-          <div className="edit-modal">
-            <div className="edit-header">
-              <div>
-                <p className="eyebrow">EDIT NOTE</p>
-                <h2>Edit your note</h2>
-              </div>
-
-              <button
-                className="close-button"
-                onClick={() => {
-                  setEditingNote(null);
-                  setError("");
-                }}
-                title="Close"
-              >
-                ×
-              </button>
-            </div>
-
-            <EditNoteForm
-              note={editingNote}
-              onSave={updateNote}
-              onCancel={() => {
-                setEditingNote(null);
-                setError("");
-              }}
-            />
-          </div>
-        </div>
+        <EditNoteModal
+          note={editingNote}
+          onSave={updateNote}
+          onCancel={() => {
+            setEditingNote(null);
+            setError("");
+          }}
+          onClose={() => {
+            setEditingNote(null);
+            setError("");
+          }}
+        />
       )}
     </div>
-  );
-}
-
-// -------------------------
-// EDIT NOTE FORM
-// -------------------------
-
-function EditNoteForm({ note, onSave, onCancel }) {
-  const [editTitle, setEditTitle] = useState(note.title);
-  const [editContent, setEditContent] = useState(note.content);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (!editTitle.trim() || !editContent.trim()) {
-      return;
-    }
-
-    onSave(
-      note._id,
-      editTitle.trim(),
-      editContent.trim()
-    );
-  };
-
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="edit-form"
-    >
-      <div className="form-group">
-        <label>Title</label>
-
-        <input
-          type="text"
-          value={editTitle}
-          onChange={(e) =>
-            setEditTitle(e.target.value)
-          }
-          placeholder="Note title..."
-          autoFocus
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Content</label>
-
-        <textarea
-          value={editContent}
-          onChange={(e) =>
-            setEditContent(e.target.value)
-          }
-          placeholder="Write your note..."
-          rows="8"
-        />
-      </div>
-
-      <div className="edit-form-actions">
-        <button
-          type="button"
-          className="cancel-button"
-          onClick={onCancel}
-        >
-          Cancel
-        </button>
-
-        <button
-          type="submit"
-          className="save-button"
-        >
-          Save Changes
-        </button>
-      </div>
-    </form>
   );
 }
 
